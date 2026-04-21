@@ -23,6 +23,10 @@ public class PlaceBetAndDealInteractor implements PlaceBetAndDealInputBoundary {
             Dealer dealer = dataAccess.getDealer();
             Deck deck = dataAccess.getDeck();
 
+            if (deck.getRemainingCards() <= 52) {
+                deck.shuffleDeck();
+            }
+
             double balance = player.getBalance();
             double betAmount = reservedBet;
 

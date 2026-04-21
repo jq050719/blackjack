@@ -8,4 +8,6 @@ public interface DeckProvider {
     Card drawCard();
 
     List<Card> drawCards(int count);
+
+    int getRemainingCards();
 }

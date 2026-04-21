@@ -15,6 +15,7 @@ public class DeckApiService implements DeckProvider {
     private final String API_URL = "https://deckofcardsapi.com/api/deck";
     private final OkHttpClient client = new OkHttpClient();
     private String deckId;
+    private int remaining;      // keep track of cards left, shuffle when <= 52
 
     public DeckApiService() {
         this.deckId = getNewDeck();
@@ -57,6 +58,7 @@ public class DeckApiService implements DeckProvider {
             JSONObject json = new JSONObject(response.body().string());
             JSONArray cardArray = json.getJSONArray("cards");
             JSONObject cardJson = cardArray.getJSONObject(0);
+            this.remaining = json.getInt("remaining");
 
             return getCard(cardJson);
         } catch (IOException e) {
@@ -99,6 +101,11 @@ public class DeckApiService implements DeckProvider {
         String image = cardJson.getString("image");
 
         return new Card(code, suit, value, valueInt, image);
+    }
+
+    @Override
+    public int getRemainingCards() {
+        return this.remaining;
     }
 
 }
