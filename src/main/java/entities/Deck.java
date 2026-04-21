@@ -21,4 +21,9 @@ public class Deck {
     public List<Card> drawCards(int count) {
         return deckProvider.drawCards(count);
     }
+
+    /** Get number of remaining cards from the API. Use when deck is running low to reshuffle. */
+    public int getRemainingCards() {
+        return deckProvider.getRemainingCards();
+    }
 }
