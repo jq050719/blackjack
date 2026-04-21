@@ -30,6 +30,11 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     @Override
     public void hit() {
         try {
+            // prevent user from hitting on 21
+            if (player.getHand(0).getTotalPoints() == 21) {
+                presenter.presentError("Do you even know how to play Blackjack?");
+            }
+
             double balance = player.getBalance();
             double betAmount = player.getCurrentBet();
             Hand hand = player.getHand(0);
