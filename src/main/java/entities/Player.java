@@ -47,7 +47,6 @@ public class Player {
         if (amount > balanceBeforeBet) {
             throw new IllegalArgumentException("Not enough balance.");
         }
-        // this.balance -= amount;
         this.currentBet = amount;
     }
 
@@ -72,5 +71,13 @@ public class Player {
 
     public void setInsurance(boolean insurance) {
         this.hasInsurance = insurance;
+    }
+
+    public Hand getCurrentHand() {
+        return hands.get(0);
+    }
+
+    public int getNumberOfHands() {
+        return hands.size();
     }
 }
