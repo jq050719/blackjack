@@ -1,29 +1,19 @@
 package usecase.playeraction;
 
-/**
- * Input data for player actions in Blackjack.
- * Contains all information needed to execute a player's action.
- *
- * @author Wentai Zhang (eurekoko)
- */
 public class PlayerActionInputData {
-    // private final int handIndex;      // Which hand to act on (0 for first, 1+ for split hands)
-    private final double betAmount;   // For DOUBLE and INSURANCE actions
-    private final double balance;
+    private final boolean playerHasBlackjack;
+    private final boolean dealerShowingTen;
 
-    /**
-     * Constructor for actions requiring bet amount (DOUBLE, INSURANCE)
-     */
-    public PlayerActionInputData(double betAmount, double balance) {
-        this.betAmount = betAmount;
-        this.balance = balance;
+    public PlayerActionInputData(boolean playerHasBlackjack, boolean dealerShowingTen) {
+        this.playerHasBlackjack = playerHasBlackjack;
+        this.dealerShowingTen = dealerShowingTen;
     }
 
-    public double getBetAmount() {
-        return betAmount;
+    public boolean getPlayerHasBlackjack() {
+        return playerHasBlackjack;
     }
 
-    public double getBalance() {
-        return balance;
+    public boolean getDealerShowingTen() {
+        return dealerShowingTen;
     }
 }
