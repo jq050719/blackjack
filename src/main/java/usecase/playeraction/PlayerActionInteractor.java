@@ -284,6 +284,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
         presenter.presentResult(message, newBalance, 0);
     }
 
+    @Override
     public boolean canEndImmediately() {
         boolean playerHasBlackjack = inputData.getPlayerHasBlackjack();
         boolean dealerShowingTen = inputData.getDealerShowingTen();

@@ -14,4 +14,5 @@ public interface PlayerActionInputBoundary {
     Player getPlayer();
     Deck getDeck();
     Dealer getDealer();
+    boolean canEndImmediately();
 }

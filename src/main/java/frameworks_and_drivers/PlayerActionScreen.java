@@ -131,6 +131,14 @@ public class PlayerActionScreen extends JFrame {
 
         add(backgroundPanel);
 
+        // check if round can end immediately
+        // i.e. user has blackjack or dealer has hidden blackjack
+        boolean canEndImmediately = playerController.canEndImmediately();
+        if (canEndImmediately) {
+            playerController.handleRoundResult();
+            enablePlayAgain();
+        }
+
         playerViewModel.addPropertyChangeListener(e -> {
             switch (e.getPropertyName()) {
                 case "playerCards" -> SwingUtilities.invokeLater(this::updatePlayerCards);

@@ -13,6 +13,7 @@ import interface_adapters.placebetanddeal.PlaceBetAndDealController;
 import usecase.placebetanddeal.PlaceBetAndDealInputData;
 import interface_adapters.placebetanddeal.PlaceBetAndDealViewModel;
 import interface_adapters.playeraction.PlayerActionController;
+import usecase.playeraction.PlayerActionInputData;
 import usecase.playeraction.PlayerActionInteractor;
 import interface_adapters.playeraction.PlayerActionPresenter;
 import interface_adapters.playeraction.PlayerActionViewModel;
@@ -194,9 +195,11 @@ public class BetScreen extends JFrame implements ActionListener {
         daViewModel.setPlayerTotal(viewModel.getPlayerTotal());
         daViewModel.setDealerTotal(viewModel.getDealerVisibleTotal());
         PlayerActionPresenter paPresenter = new PlayerActionPresenter(paViewModel);
+        PlayerActionInputData paInputData = new PlayerActionInputData(viewModel.isInitialBlackjack(),
+                viewModel.getDealerVisibleTotal() == 10);
         PlayerActionInteractor paInteractor = new PlayerActionInteractor(controller.getDeck(),
                 controller.getPlayer(), controller.getDealer(), paPresenter,
-                daInteractor);
+                daInteractor, paInputData);
         PlayerActionController paController = new PlayerActionController(paInteractor);
 
         dispose();
