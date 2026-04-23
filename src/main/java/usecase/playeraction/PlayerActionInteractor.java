@@ -17,27 +17,31 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     private final Dealer dealer;
     private final PlayerActionOutputBoundary presenter;
     private final DealerActionInteractor dealerInteractor;
+    private final PlayerActionInputData inputData;
+    private boolean tookInsurance;
 
     public PlayerActionInteractor(Deck deck, Player player, Dealer dealer, PlayerActionOutputBoundary presenter,
-                                  DealerActionInteractor dealerInteractor) {
+                                  DealerActionInteractor dealerInteractor, PlayerActionInputData inputData) {
         this.deck = deck;
         this.player = player;
         this.dealer = dealer;
         this.presenter = presenter;
         this.dealerInteractor = dealerInteractor;
+        this.inputData = inputData;
     }
 
     @Override
     public void hit() {
         try {
             // prevent user from hitting on 21
-            if (player.getHand(0).getTotalPoints() == 21) {
+            if (player.getCurrentHand().getTotalPoints() == 21) {
                 presenter.presentError("Do you even know how to play Blackjack?");
+                return;
             }
 
             double balance = player.getBalance();
             double betAmount = player.getCurrentBet();
-            Hand hand = player.getHand(0);
+            Hand hand = player.getCurrentHand();
             Card drawnCard = deck.drawCard();
             hand.addCard(drawnCard);
 
@@ -72,7 +76,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     public void stand() {
         double balance = player.getBalance();
         double betAmount = player.getCurrentBet();
-        Hand hand = player.getHand(0);
+        Hand hand = player.getCurrentHand();
         int dealerVisibleTotal = dealer.getHand().getCards().get(1).getValue();
 
         PlayerActionOutputData outputData = new PlayerActionOutputData(
@@ -98,7 +102,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
         if (player.getCurrentBet() > player.getBalance()) {
             presenter.presentError("Insufficient funds to double down.");
         }
-        else if (player.getHand(0).getCards().size() > 2) {
+        else if (player.getCurrentHand().getCards().size() > 2) {
             presenter.presentError("You cannot double down after hitting.");
         }
         else {
@@ -108,7 +112,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
             double newBetAmount = betAmount * 2;
 
             // draw just one more card
-            Hand hand = player.getHand(0);
+            Hand hand = player.getCurrentHand();
             Card drawnCard = deck.drawCard();
             hand.addCard(drawnCard);
 
@@ -154,95 +158,70 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
 
     @Override
     public void insurance() {
-        try {
-            // insurance
-            if (player.hasInsurance()) {
-                presenter.presentError("Insurance already purchased for this round");
-                return;
-            }
+        Hand dealerHand = dealer.getHand();
+        Hand playerHand = player.getCurrentHand();
 
-            // dealer upcard
-            List<Card> dealerCards = dealer.getHand().getCards();
-            if (dealerCards.isEmpty()) {
-                presenter.presentError("Cannot take insurance - dealer has no cards");
-                return;
-            }
+        int dealerVisibleValue = dealerHand.getCards().get(1).getValue();
 
-            Card dealerUpCard = dealerCards.get(1);
-            if (!dealerUpCard.getRank().equalsIgnoreCase("ACE")) {
-                presenter.presentError("Insurance only available when dealer shows Ace");
-                return;
-            }
+        // insurance is only allowed if dealer is showing Ace
+        if (dealerVisibleValue != 11) {
+            presenter.presentError("You can only take insurance when the dealer shows an Ace");
+            return;
+        }
 
-            double originalBet = player.getCurrentBet();
-            double insuranceBet = originalBet / 2.0;
-            double balance = player.getBalance();
+        // insurance can only be taken once, and before any other action
+        if (playerHand.getCards().size() > 2 || tookInsurance) {
+            presenter.presentError("You cannot take insurance at this time.");
+            return;
+        }
 
-            if (balance < insuranceBet) {
-                presenter.presentError(String.format(
-                        "Insufficient balance for insurance. Need $%.2f, have $%.2f",
-                        insuranceBet, balance
-                ));
-                return;
-            }
+        // check if user has sufficient funds
+        double insuranceCost = player.getCurrentBet() * 0.5;
+        if (player.getBalance() < insuranceCost) {
+            presenter.presentError("Insufficient funds");
+            return;
+        }
 
-            // insurance
-            player.setInsurance(true);
-            player.setBalance(balance - insuranceBet);
+        // deduct insurance immediately
+        player.setBalance(player.getBalance() - insuranceCost);
+        tookInsurance = true;
 
-            // dealer blackjack
-            Hand dealerHand = dealer.getHand();
-            boolean dealerBlackjack = dealerHand.isBlackjack();
+        // Update UI after buying insurance
+        // Since insurance is a side bet, initial bet amount remains unchanged
+        presenter.present(new PlayerActionOutputData(
+                null, null,
+                playerHand.getTotalPoints(),
+                dealerVisibleValue,
+                playerHand.isBust(),
+                playerHand.isBlackjack(),
+                false,
+                player.getBalance(),
+                player.getCurrentBet()
+        ));
 
-            String message;
-            double newBalance;
+        // check if dealer has blackjack
+        if (dealerHand.isBlackjack()) {
+            // Insurance pays 2:1, so player gets insuranceCost * 3 back in total
+            double payout = insuranceCost * 3;
+            player.setBalance(player.getBalance() + payout);
 
-            if (dealerBlackjack) {
-                double payout = insuranceBet * 3.0;
-                newBalance = player.getBalance() + payout;
-                player.setBalance(newBalance);
-                message = String.format(
-                        "Insurance wins! Dealer has Blackjack. Won $%.2f",
-                        payout - insuranceBet
-                );
-            } else {
-                newBalance = player.getBalance();
-                message = String.format(
-                        "Insurance loses. Dealer does not have Blackjack. Lost $%.2f",
-                        insuranceBet
-                );
-            }
-
-            Hand playerHand = player.getHand(0);
-            int dealerVisibleTotal = dealerCards.get(1).getValue();
-
-            List<String> playerImages = new ArrayList<>();
-            for (Card c : playerHand.getCards()) {
-                playerImages.add(c.getImage());
-            }
-
-            PlayerActionOutputData outputData = new PlayerActionOutputData(
-                    playerImages,
-                    null,
-                    playerHand.getTotalPoints(),
-                    dealerVisibleTotal,
-                    playerHand.isBust(),
-                    playerHand.isBlackjack(),
-                    dealerBlackjack,
-                    newBalance,
-                    originalBet
+            presenter.presentResult(
+                    "Dealer has Blackjack! Insurance pays out.",
+                    player.getBalance(),
+                    player.getCurrentBet()
             );
 
-            presenter.present(outputData);
-
-            if (dealerBlackjack) {
-                handleRoundResult();
-            }
-
-        } catch (Exception e) {
-            presenter.presentError("Error during insurance: " + e.getMessage());
+            stand();
         }
-        //presenter.presentError("Insurance not implemented yet");
+
+        // If dealer does NOT have blackjack:
+        else {
+            presenter.presentResult(
+                    "Dealer does not have blackjack. Insurance lost.",
+                    player.getBalance(),
+                    player.getCurrentBet()
+            );
+        }
     }
 
 
@@ -304,6 +283,40 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
 
         // push into ViewModel
         presenter.presentResult(message, newBalance, 0);
+    }
+
+    @Override
+    public boolean canEndImmediately() {
+        boolean playerHasBlackjack = inputData.getPlayerHasBlackjack();
+        boolean dealerShowingTen = inputData.getDealerShowingTen();
+        int dealerVisibleTotal = dealer.getHand().getCards().get(1).getValue();
+        int dealerTotal = dealer.getHand().getTotalPoints();
+        if (playerHasBlackjack) {
+            if (dealerVisibleTotal < 10) {
+                return true;
+            }
+            else if (dealerShowingTen) {
+                if (dealerTotal < 21) {
+                    System.out.println("Dealer showing 10 but doesn't have blackjack");  // debug print
+                    return true;
+                }
+                else {
+                    System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
+                    return true;
+                }
+            }
+            else {  // dealer showing an ace
+                // do nothing, player may still take insurance
+                return false;
+            }
+        }
+        else {
+            if (dealerShowingTen && dealerTotal == 21) {  // player doesn't have blackjack and dealer does
+                System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
+                return true;
+            }
+        }
+        return false;
     }
 
     public Player getPlayer() {

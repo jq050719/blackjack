@@ -47,4 +47,8 @@ public class PlayerActionController {
     public Dealer getDealer() {
         return interactor.getDealer();
     }
+
+    public boolean canEndImmediately() {
+        return interactor.canEndImmediately();
+    }
 }
