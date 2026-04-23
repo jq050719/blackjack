@@ -42,7 +42,8 @@ public class DeckApiService implements DeckProvider {
             Request request = new Request.Builder()
                     .url(API_URL + "/" + deckId + "/shuffle/")
                     .build();
-            client.newCall(request).execute();
+            Response response = client.newCall(request).execute();
+            response.close();
         } catch (IOException e) {
             throw new RuntimeException("Error shuffling deck", e);
         }
@@ -59,6 +60,7 @@ public class DeckApiService implements DeckProvider {
             JSONArray cardArray = json.getJSONArray("cards");
             JSONObject cardJson = cardArray.getJSONObject(0);
             this.remaining = json.getInt("remaining");
+            response.close();
 
             return getCard(cardJson);
         } catch (IOException e) {
@@ -82,6 +84,8 @@ public class DeckApiService implements DeckProvider {
                 Card card = getCard(cardJson);
                 cardList.add(card);
             }
+            response.close();
+
             return cardList;
         } catch (IOException e) {
             throw new RuntimeException(e);
