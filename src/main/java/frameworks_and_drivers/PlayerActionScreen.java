@@ -135,7 +135,7 @@ public class PlayerActionScreen extends JFrame {
         // i.e. user has blackjack or dealer has hidden blackjack
         boolean canEndImmediately = playerController.canEndImmediately();
         if (canEndImmediately) {
-            playerController.handleRoundResult();
+            playerController.stand();
             enablePlayAgain();
         }
 

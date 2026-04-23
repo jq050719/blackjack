@@ -34,8 +34,9 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     public void hit() {
         try {
             // prevent user from hitting on 21
-            if (player.getHand(0).getTotalPoints() == 21) {
+            if (player.getCurrentHand().getTotalPoints() == 21) {
                 presenter.presentError("Do you even know how to play Blackjack?");
+                return;
             }
 
             double balance = player.getBalance();
@@ -75,7 +76,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     public void stand() {
         double balance = player.getBalance();
         double betAmount = player.getCurrentBet();
-        Hand hand = player.getHand(0);
+        Hand hand = player.getCurrentHand();
         int dealerVisibleTotal = dealer.getHand().getCards().get(1).getValue();
 
         PlayerActionOutputData outputData = new PlayerActionOutputData(
@@ -101,7 +102,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
         if (player.getCurrentBet() > player.getBalance()) {
             presenter.presentError("Insufficient funds to double down.");
         }
-        else if (player.getHand(0).getCards().size() > 2) {
+        else if (player.getCurrentHand().getCards().size() > 2) {
             presenter.presentError("You cannot double down after hitting.");
         }
         else {
@@ -111,7 +112,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
             double newBetAmount = betAmount * 2;
 
             // draw just one more card
-            Hand hand = player.getHand(0);
+            Hand hand = player.getCurrentHand();
             Card drawnCard = deck.drawCard();
             hand.addCard(drawnCard);
 
