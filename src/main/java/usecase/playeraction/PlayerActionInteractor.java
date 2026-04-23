@@ -33,12 +33,6 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     @Override
     public void hit() {
         try {
-            // prevent user from hitting on 21
-            if (player.getCurrentHand().getTotalPoints() == 21) {
-                presenter.presentError("Do you even know how to play Blackjack?");
-                return;
-            }
-
             double balance = player.getBalance();
             double betAmount = player.getCurrentBet();
             Hand hand = player.getCurrentHand();
@@ -54,19 +48,25 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
                 newPlayerImages.add(c.getImage());
             }
 
+
             PlayerActionOutputData outputData = new PlayerActionOutputData(
-                    newPlayerImages,
-                    null,
-                    playerTotal,
-                    dealerVisibleTotal,
-                    bust,
-                    hand.isBlackjack(),
-                    bust, // actionComplete true if bust
-                    balance,
-                    betAmount
+                newPlayerImages,
+                null,
+                playerTotal,
+                dealerVisibleTotal,
+                bust,
+                hand.isBlackjack(),
+                bust, // actionComplete true if bust
+                balance,
+                betAmount
             );
 
             presenter.present(outputData);
+
+            // auto-stand if player hit 21
+            if (playerTotal == 21) {
+                stand();
+            }
         } catch (Exception e) {
             presenter.presentError("Error during hit: " + e.getMessage());
         }
@@ -228,7 +228,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     @Override
     public void handleRoundResult() {
 
-        Hand playerHand = player.getHand(0);
+        Hand playerHand = player.getCurrentHand();
         Hand dealerHand = dealer.getHand();
         double balance = player.getBalance();
         double betAmount = player.getCurrentBet();
@@ -295,13 +295,14 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
             if (dealerVisibleTotal < 10) {
                 return true;
             }
-            else if (dealerShowingTen) {
+            else if (dealerVisibleTotal == 10) {
                 if (dealerTotal < 21) {
                     System.out.println("Dealer showing 10 but doesn't have blackjack");  // debug print
                     return true;
                 }
                 else {
                     System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
+                    // this is a draw
                     return true;
                 }
             }
@@ -311,7 +312,7 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
             }
         }
         else {
-            if (dealerShowingTen && dealerTotal == 21) {  // player doesn't have blackjack and dealer does
+            if (dealerVisibleTotal == 10 && dealerTotal == 21) {  // player doesn't have blackjack and dealer does
                 System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
                 return true;
             }
