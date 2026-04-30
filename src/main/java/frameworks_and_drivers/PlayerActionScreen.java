@@ -131,14 +131,6 @@ public class PlayerActionScreen extends JFrame {
 
         add(backgroundPanel);
 
-        // check if round can end immediately
-        // i.e. user has blackjack or dealer has hidden blackjack
-        boolean canEndImmediately = playerController.canEndImmediately();
-        if (canEndImmediately) {
-            playerController.stand();
-            enablePlayAgain();
-        }
-
         playerViewModel.addPropertyChangeListener(e -> {
             switch (e.getPropertyName()) {
                 case "playerCards" -> SwingUtilities.invokeLater(this::updatePlayerCards);
@@ -147,9 +139,20 @@ public class PlayerActionScreen extends JFrame {
                 case "playerActionComplete" -> {
                     if (playerViewModel.isActionComplete()) {
                         JOptionPane.showMessageDialog(this, "Player action complete");
+                        // disable buttons, prevent user from clicking while dealer is playing
+                        // bugs may occur if, for example, user spams hit when dealer playing
+                        hitButton.setEnabled(false);
+                        standButton.setEnabled(false);
+                        doubleButton.setEnabled(false);
+                        splitButton.setEnabled(false);
+                        insuranceButton.setEnabled(false);
+
                         if (playerViewModel.isPlayerBust()) {
                             playerController.handleRoundResult();
                             enablePlayAgain();
+                        }
+                        else if (playerViewModel.isPlayerBlackjack()) {
+                            JOptionPane.showMessageDialog(this, "Blackjack!");
                         }
                     }
                 }
@@ -184,6 +187,10 @@ public class PlayerActionScreen extends JFrame {
                 case "error" -> JOptionPane.showMessageDialog(this, dealerViewModel.getErrorMessage());
             }
         });
+        // check if round can end immediately
+        // i.e. user has blackjack or dealer has hidden blackjack
+        playerController.canEndImmediately();
+
         updatePlayerCards();
         updateDealerCards();
 

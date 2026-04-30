@@ -43,7 +43,7 @@ public class PlaceBetAndDealInteractor implements PlaceBetAndDealInputBoundary {
             List<Card> playerCards = deck.drawCards(2);
             List<Card> dealerCards = deck.drawCards(2);
 
-            Hand playerHand = player.getHand(0);
+            Hand playerHand = player.getCurrentHand();
             Hand dealerHand = dealer.getHand();
 
             playerHand.addCard(playerCards.get(0));
