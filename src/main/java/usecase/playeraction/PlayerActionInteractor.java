@@ -227,7 +227,6 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
 
     @Override
     public void handleRoundResult() {
-
         Hand playerHand = player.getCurrentHand();
         Hand dealerHand = dealer.getHand();
         double balance = player.getBalance();
@@ -249,13 +248,13 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
             payout = 0;
             message = "Player busts! Dealer wins.";
         }
-        else if (dealerBust) {
-            payout = betAmount * 2;
-            message = "Dealer busts! You win!";
-        }
         else if (playerBlackjack && !dealerBlackjack) {
             payout = betAmount * 2.5; // 3:2 blackjack
             message = "Blackjack! You win!";
+        }
+        else if (dealerBust) {
+            payout = betAmount * 2;
+            message = "Dealer busts! You win!";
         }
         else if (!playerBlackjack && dealerBlackjack) {
             payout = 0;
@@ -286,38 +285,36 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
     }
 
     @Override
-    public boolean canEndImmediately() {
-        boolean playerHasBlackjack = inputData.getPlayerHasBlackjack();
-        boolean dealerShowingTen = inputData.getDealerShowingTen();
+    public void canEndImmediately() {
+        Hand playerHand =  player.getCurrentHand();
+        boolean playerHasBlackjack = playerHand.isBlackjack();
         int dealerVisibleTotal = dealer.getHand().getCards().get(1).getValue();
         int dealerTotal = dealer.getHand().getTotalPoints();
         if (playerHasBlackjack) {
             if (dealerVisibleTotal < 10) {
-                return true;
+                stand();
             }
             else if (dealerVisibleTotal == 10) {
                 if (dealerTotal < 21) {
                     System.out.println("Dealer showing 10 but doesn't have blackjack");  // debug print
-                    return true;
+                    stand();
                 }
                 else {
                     System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
                     // this is a draw
-                    return true;
+                    stand();
                 }
             }
             else {  // dealer showing an ace
                 // do nothing, player may still take insurance
-                return false;
             }
         }
         else {
             if (dealerVisibleTotal == 10 && dealerTotal == 21) {  // player doesn't have blackjack and dealer does
                 System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
-                return true;
+                stand();
             }
         }
-        return false;
     }
 
     public Player getPlayer() {
