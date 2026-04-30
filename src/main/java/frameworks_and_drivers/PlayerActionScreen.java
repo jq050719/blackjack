@@ -138,7 +138,7 @@ public class PlayerActionScreen extends JFrame {
                         playerTotal.setText("Player: " + playerViewModel.getPlayerTotal()));
                 case "playerActionComplete" -> {
                     if (playerViewModel.isActionComplete()) {
-                        JOptionPane.showMessageDialog(this, "Player action complete");
+                        // JOptionPane.showMessageDialog(this, "Player action complete");
                         // disable buttons, prevent user from clicking while dealer is playing
                         // bugs may occur if, for example, user spams hit when dealer playing
                         hitButton.setEnabled(false);
@@ -151,16 +151,16 @@ public class PlayerActionScreen extends JFrame {
                             playerController.handleRoundResult();
                             enablePlayAgain();
                         }
-                        else if (playerViewModel.isPlayerBlackjack()) {
-                            JOptionPane.showMessageDialog(this, "Blackjack!");
-                        }
+//                        else if (playerViewModel.isPlayerBlackjack()) {
+//                            JOptionPane.showMessageDialog(this, "Blackjack!");
+//                        }
                     }
                 }
                 case "roundMessage" -> {
                     JOptionPane.showMessageDialog(this, playerViewModel.getRoundMessage());
                 }
                 case "roundComplete" -> {
-                    JOptionPane.showMessageDialog(this, "Round complete");
+                    // JOptionPane.showMessageDialog(this, "Round complete");
                     updateBalance();
                     updateBet();
                 }
@@ -179,7 +179,7 @@ public class PlayerActionScreen extends JFrame {
                         dealerTotal.setText("Dealer: " + dealerViewModel.getDealerTotal()));
                 case "dealerActionComplete" -> {
                     if (dealerViewModel.isActionComplete()) {
-                        JOptionPane.showMessageDialog(this, "Dealer turn complete");
+                        // JOptionPane.showMessageDialog(this, "Dealer turn complete");
                         playerController.handleRoundResult();
                         enablePlayAgain();
                     }
