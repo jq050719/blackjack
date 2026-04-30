@@ -296,11 +296,9 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
             }
             else if (dealerVisibleTotal == 10) {
                 if (dealerTotal < 21) {
-                    System.out.println("Dealer showing 10 but doesn't have blackjack");  // debug print
                     stand();
                 }
                 else {
-                    System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
                     // this is a draw
                     stand();
                 }
@@ -311,7 +309,6 @@ public class PlayerActionInteractor implements PlayerActionInputBoundary {
         }
         else {
             if (dealerVisibleTotal == 10 && dealerTotal == 21) {  // player doesn't have blackjack and dealer does
-                System.out.println("Dealer showing 10 but has a hidden blackjack");  // debug print
                 stand();
             }
         }
